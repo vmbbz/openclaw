@@ -23,6 +23,9 @@ const OPENAI_REALTIME_SDP_ANSWER_MAX_BYTES = 256 * 1024;
 const OPENAI_REALTIME_LOCATION_MAX_BYTES = 512;
 const OPENAI_REALTIME_CALL_ID_RE = /^[A-Za-z0-9_-]{1,128}$/u;
 const OPENAI_GPT_LIVE_WAITLIST_URL = "https://openai.com/form/gpt-live-1-in-the-api/";
+// GPT-Live does not emit finalized user transcript events unless input audio
+// transcription is explicitly enabled in the session configuration.
+const OPENAI_QUICKSILVER_INPUT_TRANSCRIPTION_MODEL = "gpt-4o-mini-transcribe";
 
 const OPENAI_QUICKSILVER_VOICES = [
   "alloy",
@@ -57,7 +60,10 @@ export type OpenAIQuicksilverInitialItem = {
 type OpenAIQuicksilverSession = {
   model: string;
   instructions: string;
-  audio: { output: { voice: OpenAIQuicksilverVoice } };
+  audio: {
+    input: { transcription: { model: string } };
+    output: { voice: OpenAIQuicksilverVoice };
+  };
   delegation: { type: "client" };
   initial_items?: Array<{
     type: "message";
@@ -173,7 +179,10 @@ export function buildOpenAIQuicksilverSession(params: {
   return {
     model: params.model,
     instructions: params.instructions?.trim() ?? "",
-    audio: { output: { voice: resolveOpenAIQuicksilverVoice(params.voice) } },
+    audio: {
+      input: { transcription: { model: OPENAI_QUICKSILVER_INPUT_TRANSCRIPTION_MODEL } },
+      output: { voice: resolveOpenAIQuicksilverVoice(params.voice) },
+    },
     delegation: { type: "client" },
     ...(initialItems && initialItems.length > 0 ? { initial_items: initialItems } : {}),
   };

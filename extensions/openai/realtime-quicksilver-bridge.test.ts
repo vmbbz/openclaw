@@ -141,7 +141,10 @@ describe("OpenAIQuicksilverVoiceBridge", () => {
       type: "session.update",
       session: {
         instructions: "Use delegation for real work.",
-        audio: { output: { voice: "marin" } },
+        audio: {
+          input: { transcription: { model: "gpt-4o-mini-transcribe" } },
+          output: { voice: "marin" },
+        },
         delegation: { type: "client" },
       },
     });

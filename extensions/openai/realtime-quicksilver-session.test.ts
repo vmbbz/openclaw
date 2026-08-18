@@ -29,6 +29,7 @@ function requireStringBody(body: BodyInit | null | undefined): string {
 }
 
 const AUDIO_ONLY_SDP = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n";
+const INPUT_TRANSCRIPTION = { input: { transcription: { model: "gpt-4o-mini-transcribe" } } };
 
 describe("GPT-Live session shaping", () => {
   it("maps initial roles and normalizes voices without an id field", () => {
@@ -45,7 +46,7 @@ describe("GPT-Live session shaping", () => {
     ).toEqual({
       model: "gpt-live-1",
       instructions: "Speak briefly.",
-      audio: { output: { voice: "cedar" } },
+      audio: { ...INPUT_TRANSCRIPTION, output: { voice: "cedar" } },
       delegation: { type: "client" },
       initial_items: [
         {
@@ -69,7 +70,7 @@ describe("GPT-Live session shaping", () => {
     ).toEqual({
       model: "gpt-live-1-mini",
       instructions: "",
-      audio: { output: { voice: "marin" } },
+      audio: { ...INPUT_TRANSCRIPTION, output: { voice: "marin" } },
       delegation: { type: "client" },
     });
   });
@@ -87,6 +88,7 @@ describe("GPT-Live session shaping", () => {
     "verse",
   ])("accepts the live-proven %s voice", (voice) => {
     expect(buildOpenAIQuicksilverSession({ model: "gpt-live-1-codex", voice }).audio).toEqual({
+      ...INPUT_TRANSCRIPTION,
       output: { voice },
     });
   });
@@ -95,6 +97,7 @@ describe("GPT-Live session shaping", () => {
     "falls back from the rejected %s voice",
     (voice) => {
       expect(buildOpenAIQuicksilverSession({ model: "gpt-live-1-codex", voice }).audio).toEqual({
+        ...INPUT_TRANSCRIPTION,
         output: { voice: "marin" },
       });
     },
