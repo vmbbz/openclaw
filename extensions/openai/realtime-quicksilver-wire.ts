@@ -15,6 +15,9 @@ const OPENAI_QUICKSILVER_DELEGATION_RESULT_MAX_CHARS = 1_800;
 const OPENAI_QUICKSILVER_CONTEXT_MAX_ENTRIES = 16;
 const OPENAI_QUICKSILVER_CONTEXT_MAX_ITEM_CHARS = 800;
 const OPENAI_QUICKSILVER_CONTEXT_MAX_UTF8_BYTES = 8_000;
+// Browser-owned Talk calls must request finalized input transcripts explicitly.
+// Keep this aligned with the normal OpenAI realtime session policy.
+const OPENAI_QUICKSILVER_INPUT_TRANSCRIPTION_MODEL = "gpt-4o-mini-transcribe";
 const OPENAI_QUICKSILVER_CALL_URL = "https://api.openai.com/v1/live";
 const OPENAI_REALTIME_CALL_URL = "https://api.openai.com/v1/realtime/calls";
 const OPENAI_REALTIME_ERROR_BODY_MAX_BYTES = 16 * 1024;
@@ -68,7 +71,10 @@ export type OpenAIQuicksilverInitialItem = {
 type OpenAIQuicksilverSession = {
   model: string;
   instructions: string;
-  audio: { output: { voice: OpenAIQuicksilverVoice } };
+  audio: {
+    input: { transcription: { model: string } };
+    output: { voice: OpenAIQuicksilverVoice };
+  };
   delegation: { type: "client" };
   initial_items?: Array<{
     type: "message";
@@ -184,7 +190,10 @@ export function buildOpenAIQuicksilverSession(params: {
   return {
     model: params.model,
     instructions: params.instructions?.trim() ?? "",
-    audio: { output: { voice: resolveOpenAIQuicksilverVoice(params.voice) } },
+    audio: {
+      input: { transcription: { model: OPENAI_QUICKSILVER_INPUT_TRANSCRIPTION_MODEL } },
+      output: { voice: resolveOpenAIQuicksilverVoice(params.voice) },
+    },
     delegation: { type: "client" },
     ...(initialItems && initialItems.length > 0 ? { initial_items: initialItems } : {}),
   };

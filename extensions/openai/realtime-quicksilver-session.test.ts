@@ -45,7 +45,10 @@ describe("GPT-Live session shaping", () => {
     ).toEqual({
       model: "gpt-live-1",
       instructions: "Speak briefly.",
-      audio: { output: { voice: "cedar" } },
+      audio: {
+        input: { transcription: { model: "gpt-4o-mini-transcribe" } },
+        output: { voice: "cedar" },
+      },
       delegation: { type: "client" },
       initial_items: [
         {
@@ -69,9 +72,18 @@ describe("GPT-Live session shaping", () => {
     ).toEqual({
       model: "gpt-live-1-mini",
       instructions: "",
-      audio: { output: { voice: "marin" } },
+      audio: {
+        input: { transcription: { model: "gpt-4o-mini-transcribe" } },
+        output: { voice: "marin" },
+      },
       delegation: { type: "client" },
     });
+  });
+
+  it("requests finalized input transcription for Browser Talk", () => {
+    expect(
+      buildOpenAIQuicksilverSession({ model: "gpt-live-1-codex" }).audio.input.transcription,
+    ).toEqual({ model: "gpt-4o-mini-transcribe" });
   });
 
   it.each([
@@ -87,6 +99,7 @@ describe("GPT-Live session shaping", () => {
     "verse",
   ])("accepts the live-proven %s voice", (voice) => {
     expect(buildOpenAIQuicksilverSession({ model: "gpt-live-1-codex", voice }).audio).toEqual({
+      input: { transcription: { model: "gpt-4o-mini-transcribe" } },
       output: { voice },
     });
   });
@@ -95,6 +108,7 @@ describe("GPT-Live session shaping", () => {
     "falls back from the rejected %s voice",
     (voice) => {
       expect(buildOpenAIQuicksilverSession({ model: "gpt-live-1-codex", voice }).audio).toEqual({
+        input: { transcription: { model: "gpt-4o-mini-transcribe" } },
         output: { voice: "marin" },
       });
     },
